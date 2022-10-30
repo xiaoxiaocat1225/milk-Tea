@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地图参数</title>
+    <!-- 1.引入资源 -->
+    <script type="text/javascript">
+        window._AMapSecurityConfig = {
+            securityJsCode:'6e9594fdc5364c03dbe26f641dec5e38',
+        }
+</script>
+<script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=4dca5977eebe3b3aa399e89866651c54"></script> 
+    <!-- 3.设置地图样式 -->
+    <style>
+        html,
+        body,
+        #container{
+            width: 800px;
+            height: 500px;
+            background-color: deepskyblue;
+        }
+    </style>
+
+</head>
+<body>
+    <!-- 2.创建地图容器 -->
+    <div id="container"></div>
+    <!-- 4.加载地图 -->
+    <script>
+        //声明一个变量
+        var map=new AMap.Map('container',{
+            center:[114.30,30.60],//设置中心点经纬度 武汉
+            zoom:10,//地图缩放比例（3~20）
+            viewMode: '3D',
+            pitch:30,
+        })
+    </script>
+</body>
+</html>

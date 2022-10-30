@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>绘制点</title>
+    <!-- 1.引入资源 -->
+    <script type="text/javascript">
+        window._AMapSecurityConfig = {
+            securityJsCode:'6e9594fdc5364c03dbe26f641dec5e38',
+        }
+</script>
+<script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=4dca5977eebe3b3aa399e89866651c54"></script> 
+    <!-- 3.设置地图样式 -->
+    <style>
+        html,
+        body,
+        #container{
+            width: 800px;
+            height: 500px;
+            background-color: deepskyblue;
+        }
+    </style>
+
+</head>
+<body>
+    <!-- 2.创建地图容器 -->
+    <div id="container"></div>
+    <!-- 4.加载地图 -->
+    <script>
+        //声明一个变量
+        var map=new AMap.Map('container',{
+            center:[116.407743,39.908282],//设置中心点经纬度 北京
+            zoom:14,//地图缩放比例（3~20）
+            
+        })
+        map.on('click',function(e){
+            console.log(e)})
+
+        // 折线的节点坐标数组，每个元素为 AMap.LngLat 对象
+var path = [
+    new AMap.LngLat(116.368904,39.913423),
+    new AMap.LngLat(116.382122,39.901176),
+    new AMap.LngLat(116.387271,39.912501),
+    new AMap.LngLat(116.398258,39.904600)
+];
+
+// 创建折线实例
+var polyline = new AMap.Polyline({
+    path: path,  
+    borderWeight: 2, // 线条宽度，默认为 1
+    strokeColor: 'red', // 线条颜色
+    lineJoin: 'round' // 折线拐点连接处样式
+});
+
+// 将折线添加至地图实例
+map.add(polyline);
+
+// 多边形轮廓线的节点坐标数组
+var path = [
+    new AMap.LngLat(116.368904,39.913423),
+    new AMap.LngLat(116.382122,39.901176),
+    new AMap.LngLat(116.387271,39.912501),
+    new AMap.LngLat(116.398258,39.904600)
+];
+
+var polygon = new AMap.Polygon({
+    path: path,  
+    fillColor: '#fff', // 多边形填充颜色
+    borderWeight: 2, // 线条宽度，默认为 1
+    strokeColor: 'red', // 线条颜色
+});
+
+map.add(polygon);
+
+var circle = new AMap.Circle({
+    center: new AMap.LngLat(116.39,39.9),  // 圆心位置
+    radius: 1000, // 圆半径
+    fillColor: 'red',   // 圆形填充颜色
+    strokeColor: '#fff', // 描边颜色
+    strokeWeight: 2, // 描边宽度
+});
+
+map.add(circle);
+    </script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>杭州奶茶店</title>
+    <!-- 引入资源 -->
+    <!-- 引入css相关资源 -->
+    <link 
+    rel="stylesheet" 
+    href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css" />
+    <link rel="stylesheet" href="./css/index.css">
+    <!-- 引入js相关资源 -->
+    
+    <script type="text/javascript">
+        window._AMapSecurityConfig = {
+            //code:使用自己申请的code+key
+            securityJsCode:'6e9594fdc5364c03dbe26f641dec5e38',
+        }
+</script>
+<script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=4dca5977eebe3b3aa399e89866651c54"></script> 
+    <!-- 引入js相关资源 -->
+    <script src="./js/store.js"></script>
+</head>
+<body>
+
+    <!-- 创建地图容器 -->
+    <div id="container"></div>
+    <div class="info" style="background-color: cornflowerblue;right: 10rem">点击地点可以打卡</div>
+    <div class="input-card" style="width: 22rem;right: 15rem">
+        <h4>推荐浏览的路线</h4>
+        <div class="input-item">
+            <button class="btn" onclick="startAnimation()">开始动画</button>
+        </div>
+    </div>
+
+    <script>
+        //创建地图对象
+        var map = new AMap.Map('container', {
+      zoom: 15,
+      center: [119.734822,30.252713],
+      viewMode:'3D',
+      pitch:45,
+    });
+
+    //使用控件
+    AMap.plugin([
+    'AMap.GeoJSON',//需要引入！！！
+    'AMap.ToolBar',
+    'AMap.Scale',
+    'AMap.HawkEye',
+    'AMap.MapType',
+    'AMap.Geolocation',
+    'AMap.ControlBar',
+    'AMap.MoveAnimation',
+
+], function(){
+    // 在图面添加工具条控件，工具条控件集成了缩放、平移、定位等功能按钮在内的组合控件
+    map.addControl(new AMap.ToolBar({
+        // map:map,
+        position:'LT',
+        offset: new AMap.Pixel(-12, -12),
+        // offset:['100px','100px']
+    }));
+
+    // 在图面添加比例尺控件，展示地图在当前层级和纬度下的比例尺
+    map.addControl(new AMap.Scale());
+
+    // 在图面添加鹰眼控件，在地图右下角显示地图的缩略图
+    map.addControl(new AMap.HawkEye({isOpen:true}));
+   
+    // 在图面添加类别切换控件，实现默认图层与卫星图、实施交通图层之间切换的控制
+    map.addControl(new AMap.MapType());
+   
+    // 在图面添加定位控件，用来获取和展示用户主机所在的经纬度位置
+    map.addControl(new AMap.Geolocation());
+
+    //方向盘
+    map.addControl(new AMap.ControlBar());
+})
+
+//定义一个全局变量，保存geojson
+var geojson = new AMap.GeoJSON({
+    geoJSON: null,
+})
+
+// 如果存在数据，那么才导入数据，不存在就什么都不做
+if(JSON.stringify(getData())!='[]'){
+    //导入数据
+    geojson.importData(getData())
+    //恢复旧数据的点击事件
+    geojson.eachOverlay(function(item){
+        item.on('click',function(e){
+            // console.log(e.lnglat,'旧的数据被点击了')
+                //让点击的marker对象的click属性+1
+    var ext=item.getExtData()
+    var click=++ext._geoJsonProperties.click
+    // console.log('点击了'+click+'次')
+        //使用信息提示框显示
+        var infowindow=new AMap.InfoWindow({
+        anchor:'top-center',
+        content:`<div>打卡了${click}次</div>`,
+    })
+
+    //显示（打开信息窗口）
+    infowindow.open(map,item.getPosition())
+    saveData(geojson.toGeoJSON())
+
+        })
+    })
+ }
+
+map.add(geojson)
+
+//监听地图的点击事件
+map.on('click',function(e){
+    var marker=new AMap.Marker({
+        position:e.lnglat,
+        extData:{
+            _geoJsonProperties:{
+                gid:geojson.getOverlays().length+1,
+                click:0,
+            }
+        }
+    })
+//使用覆盖物的点击事件
+marker.on('click',function(e){
+    // console.log(e.lnglat,'点击了')
+    //让点击的marker对象的click属性+1
+    var ext=marker.getExtData()
+    var click=++ext._geoJsonProperties.click
+    // console.log('点击了'+click+'次')
+
+    //使用信息提示框显示
+    var infowindow=new AMap.InfoWindow({
+        anchor:'top-center',
+        content:`<div>打卡了${click}次</div>`,
+    })
+
+    //显示（打开信息窗口）
+    infowindow.open(map,marker.getPosition())
+
+    saveData(geojson.toGeoJSON())
+
+})
+
+
+    // map.add(marker)
+//通过geojson对象来管理覆盖物，显示点
+geojson.addOverlay(marker)
+// console.log(geojson)
+//保存数据(将geojson对象转换为标准的GeoJSON格式对象)
+saveData(geojson.toGeoJSON())
+})
+
+function startAnimation(){
+    //console.log('开始动画啦')
+    //实现路径规划（导航）
+    AMap.plugin('AMap.Driving',function(){
+        var driving=new AMap.Driving({
+            map:map,
+            //驾车策略
+            policy:AMap.DrivingPolicy.LEAST_TIME,
+        })
+        //设置起点和终点
+        var start=new AMap.LngLat(119.730057, 30.250933)//南门
+        var end=new AMap.LngLat(119.724472, 30.258176)//东湖食堂
+
+        //通过geojson得到每一个点的坐标
+        //console.log(geojson.eachOverlay)
+        var opts={
+            waypoints:[]
+        }
+
+        geojson.eachOverlay(function(item){
+            //console.log(item)
+            opts.waypoints.push(item.getPosition())
+        })
+
+        driving.search(start,end,opts,function(status,result){
+            if(status=='complete'){
+                //实现轨迹模拟  result完整路径 参考官方事例“轨迹回放”
+                console.log(result)
+                var lineArr=[]
+                result.routes[0].steps.forEach(function(item){
+                    lineArr.push(...item.path)
+                })
+
+                var marker=new AMap.Marker({
+                   map:map,
+                   position:start,
+                   icon: "奶茶.png",
+                   offset: new AMap.Pixel(-26,-13),
+                   autoRotation:true,
+                   //angle:90
+                })
+
+                        // 绘制轨迹
+
+        var passedPolyline = new AMap.Polyline({
+            map: map,
+            strokeColor: "#AF5",  //线颜色 绿色
+            strokeWeight: 6,      //线宽
+        })
+
+        marker.on('moving', function (e) {
+            passedPolyline.setPath(e.passedPath);
+            //map.setCenter(e.target.getPosition(),true)
+        })
+        map.setFitView()
+        marker.moveAlong(lineArr,{
+            duration:500,
+            autoRotation:false,//是否自动调整车头方向
+        })
+            }
+            else{
+                console.log('error')
+            }
+        })
+    })
+}
+    </script>
+
+</body>
+</html>
